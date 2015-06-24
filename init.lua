@@ -61,7 +61,7 @@ minetest.register_entity(":__builtin:item", {
 		hp_max = 1,
 		physical = true,
 		collisionbox = {-0.17,-0.17,-0.17, 0.17,0.17,0.17},
-		visual = "sprite",
+		visual = "wielditem",
 		visual_size = {x=0.5, y=0.5},
 		textures = {""},
 		spritediv = {x=1, y=1},
@@ -89,19 +89,11 @@ minetest.register_entity(":__builtin:item", {
 		end
 		prop = {
 			is_visible = true,
-			visual = "sprite",
-			textures = {"unknown_item.png"}
+			visual = "wielditem",
+			textures = {itemname},
+			visual_size = {x=0.20,y=0.20},
+			automatic_rotate = math.pi * 0.25
 		}
-		if item_texture and item_texture ~= "" then
-			prop.visual = "sprite"
-			prop.textures = {item_texture}
-			prop.visual_size = {x=0.50, y=0.50}
-		else
-			prop.visual = "wielditem"
-			prop.textures = {itemname}
-			prop.visual_size = {x=0.20, y=0.20}
-			prop.automatic_rotate = math.pi * 0.25
-		end
 		self.object:set_properties(prop)
 	end,
 
