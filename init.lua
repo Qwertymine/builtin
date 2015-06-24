@@ -8,20 +8,21 @@ local function to_unit_vector(dir_vector)
 end
 
 local function quick_water_flow_logic(node,pos_testing,direction)
-	if node.name == "default:water_source" then
+	local name = node.name
+	if minetest.registered_nodes[name].liquidtype == "source" then
 		local node_testing = minetest.get_node(pos_testing)
 		local param2_testing = node_testing.param2
-		if node_testing.name ~= "default:water_flowing" then
+		if minetest.registered_nodes[name].liquidtype ~= "flowing" then
 			return 0
 		else
 			return direction
 		end
-	elseif node.name == "default:water_flowing" then
+	elseif minetest.registered_nodes[name].liquidtype == "flowing" then
 		local node_testing = minetest.get_node(pos_testing)
 		local param2_testing = node_testing.param2
-		if node_testing.name == "default:water_source" then
+		if minetest.registered_nodes[name].liquidtype == "source" then
 			return -direction
-		elseif node_testing.name == "default:water_flowing" then
+		elseif minetest.registered_nodes[name].liquidtype == "flowing" then
 			if param2_testing < node.param2 then
 				if (node.param2 - param2_testing) > 6 then
 					return -direction
@@ -68,6 +69,8 @@ minetest.register_entity(":__builtin:item", {
 		initial_sprite_basepos = {x=0, y=0},
 		is_visible = false,
 		timer = 0,
+		last_pos = {x=0,y=0,z=0},
+		last_flow = {x=0,y=0,z=0},
 	},
 	
 	itemstring = '',
@@ -143,13 +146,32 @@ minetest.register_entity(":__builtin:item", {
 		local p = self.object:getpos()
 		
 		local name = minetest.env:get_node(p).name
-		if name == "default:lava_flowing" or name == "default:lava_source" then
+		if name == "default:lava_flowing" or name == "default:lava_source" or
+		name == "fire:basic_flame" then
 			minetest.sound_play("builtin_item_lava", {pos=self.object:getpos()})
-			self.object:remove()
+			self.timer = self.timer + 150 * dtime
 			return
 		end
 		
-		if minetest.registered_nodes[name].liquidtype == "flowing" then
+		local mod_pos = {x=math.floor(p.x+0.5),y=math.floor(p.z+0.5),z=math.floor(p.z+0.5)}
+		
+		if not self.last_pos then
+			self.last_pos = {x=0,y=0,z=0}
+		end
+
+		if not self.last_flow then
+		self.last_flow = {x=0,y=0,z=0}
+		end
+		
+		if mod_pos.x == self.last_pos.x and mod_pos.y == self.last_pos.y and mod_pos.z == self.last_pos.z then
+			local v = self.object:getvelocity()
+				self.object:setvelocity({x=self.last_flow.x,y=v.y,z=self.last_flow.z})
+				self.object:setacceleration({x=0, y=-10, z=0})
+				self.physical_state = true
+				self.object:set_properties({
+					physical = true
+			})
+		elseif minetest.registered_nodes[name].liquidtype == "flowing" then
 			get_flowing_dir = function(self)
 				local pos = self.object:getpos()
 				local node = minetest.env:get_node(pos)

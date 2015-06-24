@@ -1,4 +1,4 @@
-Builtin mod for MINETEST-C55
+Builtin_items mod for MINETEST-C55
 ==================================
 Modified by Qwertymine3, orginally by PilzAdam
 
