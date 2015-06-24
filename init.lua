@@ -12,7 +12,7 @@ local function quick_water_flow_logic(node,pos_testing,direction)
 	if minetest.registered_nodes[name].liquidtype == "source" then
 		local node_testing = minetest.get_node(pos_testing)
 		local param2_testing = node_testing.param2
-		if minetest.registered_nodes[name].liquidtype ~= "flowing" then
+		if minetest.registered_nodes[node_testing.name].liquidtype ~= "flowing" then
 			return 0
 		else
 			return direction
@@ -20,9 +20,9 @@ local function quick_water_flow_logic(node,pos_testing,direction)
 	elseif minetest.registered_nodes[name].liquidtype == "flowing" then
 		local node_testing = minetest.get_node(pos_testing)
 		local param2_testing = node_testing.param2
-		if minetest.registered_nodes[name].liquidtype == "source" then
+		if minetest.registered_nodes[node_testing.name].liquidtype == "source" then
 			return -direction
-		elseif minetest.registered_nodes[name].liquidtype == "flowing" then
+		elseif minetest.registered_nodes[node_testing.name].liquidtype == "flowing" then
 			if param2_testing < node.param2 then
 				if (node.param2 - param2_testing) > 6 then
 					return -direction
@@ -69,8 +69,6 @@ minetest.register_entity(":__builtin:item", {
 		initial_sprite_basepos = {x=0, y=0},
 		is_visible = false,
 		timer = 0,
-		last_pos = {x=0,y=0,z=0},
-		last_flow = {x=0,y=0,z=0},
 	},
 	
 	itemstring = '',
@@ -153,24 +151,6 @@ minetest.register_entity(":__builtin:item", {
 			return
 		end
 		
-		local mod_pos = {x=math.floor(p.x+0.5),y=math.floor(p.z+0.5),z=math.floor(p.z+0.5)}
-		
-		if not self.last_pos then
-			self.last_pos = {x=0,y=0,z=0}
-		end
-
-		if not self.last_flow then
-		self.last_flow = {x=0,y=0,z=0}
-		end
-		
-		if mod_pos.x == self.last_pos.x and mod_pos.y == self.last_pos.y and mod_pos.z == self.last_pos.z then
-			local v = self.object:getvelocity()
-				self.object:setvelocity({x=self.last_flow.x,y=v.y,z=self.last_flow.z})
-				self.object:setacceleration({x=0, y=-10, z=0})
-				self.physical_state = true
-				self.object:set_properties({
-					physical = true
-			})
 		elseif minetest.registered_nodes[name].liquidtype == "flowing" then
 			get_flowing_dir = function(self)
 				local pos = self.object:getpos()
@@ -189,6 +169,7 @@ minetest.register_entity(":__builtin:item", {
 				})
 				return
 			end
+			self.last_pos = mod_pos
 		end
 		
 		p.y = p.y - 0.3
